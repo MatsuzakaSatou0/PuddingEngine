@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           dir
-      - name: Run Windows Test Script
+      - name: Game launch test
         shell: bash
         run: |
           ./Pudding.exe

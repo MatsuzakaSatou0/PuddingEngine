@@ -1,4 +1,3 @@
-//ルーチン
 #include "routine.hpp"
 
 //初期化
@@ -7,7 +6,6 @@ void Routine::Initialize()
     pipeline = new PglPipeline();
     pipeline->Initialize();
 }
-//
 
 void Routine::Exit(){
     glfwTerminate();
@@ -24,4 +22,11 @@ void Routine::Update()
     }
     pipeline->End();
 }
-    
+
+void Routine::LaunchTest()
+{
+    pipeline = new PglPipeline();
+    pipeline->Initialize();
+    pipeline->Render();
+    pipeline->End();
+}

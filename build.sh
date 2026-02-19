@@ -5,3 +5,5 @@ cd build
 
 #ビルド
 ninja
+
+cd ..

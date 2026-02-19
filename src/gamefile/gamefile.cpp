@@ -1,6 +1,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <logger.hpp>
 #include "gamefile.h"
 #include "gamefile_generated.h"
 //0x55555580b360
@@ -16,8 +17,13 @@ void GameFile::SetVertexShader(std::string shader_source)
 }
 void GameFile::LoadFile()
 {
+    Log("Creating a pudding file.");
     std::ifstream file("/home/rorochan/Programming/Engine/game_data.bin", std::ios::binary | std::ios::ate);
-
+    Log("Loading game data...");
+    if (!file) {
+        Log("No game data found.");
+        return;
+    }
     std::streamsize size = file.tellg();
     if(size == -1)
     {
