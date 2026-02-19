@@ -22,13 +22,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Debug mode is ON")
 endif()
 
-target_link_libraries(Pudding PUBLIC glfw)
-target_link_libraries(Pudding PUBLIC glad::glad)
-target_link_libraries(Pudding PUBLIC flatbuffers::flatbuffers)
-target_link_libraries(Pudding PUBLIC imgui::imgui)
+target_link_libraries(Pudding PRIVATE glfw)
+target_link_libraries(Pudding PRIVATE glad::glad)
+target_link_libraries(Pudding PRIVATE flatbuffers::flatbuffers)
+target_link_libraries(Pudding PRIVATE imgui::imgui)
 
 target_include_directories(Pudding PRIVATE src src/flatbuf)
-target_include_directories(Pudding PUBLIC ${glad_INCLUDE_DIRS_DEBUG})
+target_include_directories(Pudding PRIVATE ${glad_INCLUDE_DIRS_DEBUG})
 
 set_target_properties(Pudding PROPERTIES CXX_STANDARD 20)
 
