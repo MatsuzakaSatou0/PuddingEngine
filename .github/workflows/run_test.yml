@@ -1,9 +1,6 @@
 name: Build and Test
 
-on:
-  push
-  pull_request
-  workflow_dispatch
+on: [push, pull_request]
 jobs:
   # Linux用のジョブ
   job_linux:
