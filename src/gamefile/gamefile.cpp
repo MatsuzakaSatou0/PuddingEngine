@@ -18,7 +18,7 @@ void GameFile::SetVertexShader(std::string shader_source)
 int GameFile::LoadFile()
 {
     Log("Creating a pudding file.");
-    std::ifstream file("/home/rorochan/Programming/Engine/game_data.bin", std::ios::binary | std::ios::ate);
+    std::ifstream file("game_data.bin", std::ios::binary | std::ios::ate);
     Log("Loading game data...");
     if (!file) {
         Log("No game data found.");
@@ -57,7 +57,7 @@ void GameFile::SaveFile()
     uint8_t *buf = builder.GetBufferPointer();
     int size = builder.GetSize();
 
-    std::ofstream ofile("/home/rorochan/Programming/Engine/game_data.bin", std::ios::binary);
+    std::ofstream ofile("game_data.bin", std::ios::binary);
 
     ofile.write(reinterpret_cast<char*>(buf), size);
     ofile.close();
