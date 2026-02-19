@@ -14,7 +14,6 @@ jobs:
           name: build-output
           path: ./build_win/Pudding.exe
   test-windows:
-    needs: build-linux
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
