@@ -25,7 +25,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-          path: ./downloaded
+          path: ./
       - name: Check Directory
         shell: bash
         run: |
