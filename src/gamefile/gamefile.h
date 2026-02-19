@@ -7,7 +7,7 @@ public:
     void SetFragmentShader(std::string shader_source);
     void SetVertexShader(std::string shader_source);
     void SaveFile();
-    void LoadFile();
+    int LoadFile();
     char* GetFragmentShaderPtr();
     char* GetVertexShaderPtr();
 private:

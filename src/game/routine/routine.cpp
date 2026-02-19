@@ -1,10 +1,14 @@
 #include "routine.hpp"
 
 //初期化
-void Routine::Initialize()
+int Routine::Initialize()
 {
     pipeline = new PglPipeline();
-    pipeline->Initialize();
+    if(pipeline->Initialize() == 1)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 void Routine::Exit(){
@@ -17,7 +21,6 @@ void Routine::Update()
         //Esc押されたら閉じる。
         if (glfwGetKey(pipeline->GetWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(pipeline->GetWindow(), true);
-            
         pipeline->Render();
     }
     pipeline->End();

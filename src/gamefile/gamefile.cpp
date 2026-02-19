@@ -15,19 +15,19 @@ void GameFile::SetVertexShader(std::string shader_source)
     vertex_shader = shader_source;
     return;
 }
-void GameFile::LoadFile()
+int GameFile::LoadFile()
 {
     Log("Creating a pudding file.");
     std::ifstream file("/home/rorochan/Programming/Engine/game_data.bin", std::ios::binary | std::ios::ate);
     Log("Loading game data...");
     if (!file) {
         Log("No game data found.");
-        return;
+        return 1;
     }
     std::streamsize size = file.tellg();
     if(size == -1)
     {
-        return;
+        return 1;
     }
     file.seekg(0, std::ios::beg);
 
@@ -40,6 +40,7 @@ void GameFile::LoadFile()
     fragment_shader = gamefile->fragment_shader()->shader()->str();
 
     vertex_shader = gamefile->vertex_shader()->shader()->str();
+    return 0;
 }
 void GameFile::SaveFile()
 {

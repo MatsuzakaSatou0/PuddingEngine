@@ -6,7 +6,10 @@ int main(int argc, char *argv[]) {
     Log("Pudding is launching...");
     Routine* routine = new Routine();
     Log("Initializing pudding...");
-    routine->Initialize();
+    if(routine->Initialize() == 1)
+    {
+        return 0;
+    }
     if(argv[0] == "lt")
     {
         routine->LaunchTest();

@@ -8,7 +8,7 @@ public:
     PglPipeline();
     bool GetShaderError(GLuint);
     GLFWwindow* GetWindow();
-    void Initialize();
+    int Initialize();
     void Render();
     void End();
 private:

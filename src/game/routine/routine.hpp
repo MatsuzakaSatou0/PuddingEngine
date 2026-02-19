@@ -2,7 +2,7 @@
 class Routine
 {
 public:
-    void Initialize();
+    int Initialize();
     void Update();
     void Exit();
     void LaunchTest();

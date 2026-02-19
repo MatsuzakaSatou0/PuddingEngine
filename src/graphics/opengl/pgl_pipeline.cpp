@@ -151,15 +151,18 @@ bool PglPipeline::GetShaderError(GLuint shader)
     }
     return true;
 }
-void PglPipeline::Initialize()
+int PglPipeline::Initialize()
 {
     gameFile = new GameFile();
-    gameFile->LoadFile();
+    if(gameFile->LoadFile() == 1)
+    {
+        return 1;
+    }
     
     //初期化、できなければ返す
     if (!glfwInit())
     {
-        return;
+        return 1;
     }
 
     //OpenGLのバージョンを選択　3.3
@@ -174,7 +177,7 @@ void PglPipeline::Initialize()
     //ウィンドウがなければ終了。
     if (!window) {
         glfwTerminate();
-        return;
+        return 1;
     }
 
     //winowにコンテキスト作成
@@ -182,7 +185,7 @@ void PglPipeline::Initialize()
 
     //GLを読み込み
     if (!gladLoadGL(glfwGetProcAddress)) {
-        return;
+        return 1;
     }
 
     glEnable(GL_DEBUG_OUTPUT);
@@ -234,4 +237,5 @@ void PglPipeline::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
 
     ImGui_ImplOpenGL3_Init(glsl_version);
+    return 0;
 }
