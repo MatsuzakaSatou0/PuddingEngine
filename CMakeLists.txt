@@ -17,6 +17,8 @@ src/backends/imgui_impl_glfw.cpp
 src/backends/imgui_impl_opengl3.cpp
 src/gamefile/gamefile.cpp)
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG)
     message(STATUS "Debug mode is ON")

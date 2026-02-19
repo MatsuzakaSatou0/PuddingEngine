@@ -33,4 +33,4 @@ jobs:
       - name: Run Windows Test Script
         shell: bash
         run: |
-          ./downloaded/build_win/Pudding.exe
+          ./Pudding.exe
