@@ -1,0 +1,12 @@
+namespace gamefile;
+
+table TextFile{
+    shader:string;
+}
+
+table GameFile{
+    vertex_shader:TextFile;
+    fragment_shader:TextFile;
+}
+
+root_type GameFile;

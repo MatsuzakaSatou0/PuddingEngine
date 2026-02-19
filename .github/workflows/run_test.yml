@@ -1,0 +1,29 @@
+jobs:
+  # Linux用のジョブ
+  job_linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Build Script
+        run: |
+          source release.sh
+          source win_build.sh
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: ./build_win/Pudding.exe
+  test-windows:
+    needs: build-linux
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./dist/
+      - name: Run Windows Test Script
+        shell: bash
+        run: |
+          ./build_win/Pudding.exe

@@ -1,0 +1,10 @@
+build
+build_release
+build_win
+build_win_out
+env
+.vscode
+win.zip
+imgui.ini
+game_data.bin
+flatc

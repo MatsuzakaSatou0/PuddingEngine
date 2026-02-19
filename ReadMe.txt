@@ -1,0 +1,1 @@
+shは全部linux(debian)でしか動かないです。
