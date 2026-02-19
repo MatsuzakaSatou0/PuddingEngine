@@ -25,8 +25,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-output
-          path: ./dist/
+          path: ./
+      - name: Check Directory
+        shell: bash
+        run: |
+          dir
       - name: Run Windows Test Script
         shell: bash
         run: |
-          ./Pudding.exe
+          ./build_win/Pudding.exe
