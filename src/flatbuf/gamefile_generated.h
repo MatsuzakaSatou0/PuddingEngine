@@ -15,11 +15,86 @@ static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
 
 namespace gamefile {
 
+struct Vec3;
+
+struct Entity;
+struct EntityBuilder;
+
 struct TextFile;
 struct TextFileBuilder;
 
 struct GameFile;
 struct GameFileBuilder;
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
+ private:
+  float x_;
+  float y_;
+  float z_;
+
+ public:
+  Vec3()
+      : x_(0),
+        y_(0),
+        z_(0) {
+  }
+  Vec3(float _x, float _y, float _z)
+      : x_(::flatbuffers::EndianScalar(_x)),
+        y_(::flatbuffers::EndianScalar(_y)),
+        z_(::flatbuffers::EndianScalar(_z)) {
+  }
+  float x() const {
+    return ::flatbuffers::EndianScalar(x_);
+  }
+  float y() const {
+    return ::flatbuffers::EndianScalar(y_);
+  }
+  float z() const {
+    return ::flatbuffers::EndianScalar(z_);
+  }
+};
+FLATBUFFERS_STRUCT_END(Vec3, 12);
+
+struct Entity FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef EntityBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_POSITION = 4
+  };
+  const gamefile::Vec3 *position() const {
+    return GetStruct<const gamefile::Vec3 *>(VT_POSITION);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<gamefile::Vec3>(verifier, VT_POSITION, 4) &&
+           verifier.EndTable();
+  }
+};
+
+struct EntityBuilder {
+  typedef Entity Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_position(const gamefile::Vec3 *position) {
+    fbb_.AddStruct(Entity::VT_POSITION, position);
+  }
+  explicit EntityBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Entity> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Entity>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Entity> CreateEntity(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const gamefile::Vec3 *position = nullptr) {
+  EntityBuilder builder_(_fbb);
+  builder_.add_position(position);
+  return builder_.Finish();
+}
 
 struct TextFile FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef TextFileBuilder Builder;
@@ -75,21 +150,33 @@ inline ::flatbuffers::Offset<TextFile> CreateTextFileDirect(
 struct GameFile FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef GameFileBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_VERTEX_SHADER = 4,
-    VT_FRAGMENT_SHADER = 6
+    VT_VERSION = 4,
+    VT_VERTEX_SHADER = 6,
+    VT_FRAGMENT_SHADER = 8,
+    VT_ENTITIES = 10
   };
+  int32_t version() const {
+    return GetField<int32_t>(VT_VERSION, 0);
+  }
   const gamefile::TextFile *vertex_shader() const {
     return GetPointer<const gamefile::TextFile *>(VT_VERTEX_SHADER);
   }
   const gamefile::TextFile *fragment_shader() const {
     return GetPointer<const gamefile::TextFile *>(VT_FRAGMENT_SHADER);
   }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<gamefile::Entity>> *entities() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<gamefile::Entity>> *>(VT_ENTITIES);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_VERSION, 4) &&
            VerifyOffset(verifier, VT_VERTEX_SHADER) &&
            verifier.VerifyTable(vertex_shader()) &&
            VerifyOffset(verifier, VT_FRAGMENT_SHADER) &&
            verifier.VerifyTable(fragment_shader()) &&
+           VerifyOffset(verifier, VT_ENTITIES) &&
+           verifier.VerifyVector(entities()) &&
+           verifier.VerifyVectorOfTables(entities()) &&
            verifier.EndTable();
   }
 };
@@ -98,11 +185,17 @@ struct GameFileBuilder {
   typedef GameFile Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
+  void add_version(int32_t version) {
+    fbb_.AddElement<int32_t>(GameFile::VT_VERSION, version, 0);
+  }
   void add_vertex_shader(::flatbuffers::Offset<gamefile::TextFile> vertex_shader) {
     fbb_.AddOffset(GameFile::VT_VERTEX_SHADER, vertex_shader);
   }
   void add_fragment_shader(::flatbuffers::Offset<gamefile::TextFile> fragment_shader) {
     fbb_.AddOffset(GameFile::VT_FRAGMENT_SHADER, fragment_shader);
+  }
+  void add_entities(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<gamefile::Entity>>> entities) {
+    fbb_.AddOffset(GameFile::VT_ENTITIES, entities);
   }
   explicit GameFileBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -117,12 +210,31 @@ struct GameFileBuilder {
 
 inline ::flatbuffers::Offset<GameFile> CreateGameFile(
     ::flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t version = 0,
     ::flatbuffers::Offset<gamefile::TextFile> vertex_shader = 0,
-    ::flatbuffers::Offset<gamefile::TextFile> fragment_shader = 0) {
+    ::flatbuffers::Offset<gamefile::TextFile> fragment_shader = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<gamefile::Entity>>> entities = 0) {
   GameFileBuilder builder_(_fbb);
+  builder_.add_entities(entities);
   builder_.add_fragment_shader(fragment_shader);
   builder_.add_vertex_shader(vertex_shader);
+  builder_.add_version(version);
   return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<GameFile> CreateGameFileDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t version = 0,
+    ::flatbuffers::Offset<gamefile::TextFile> vertex_shader = 0,
+    ::flatbuffers::Offset<gamefile::TextFile> fragment_shader = 0,
+    const std::vector<::flatbuffers::Offset<gamefile::Entity>> *entities = nullptr) {
+  auto entities__ = entities ? _fbb.CreateVector<::flatbuffers::Offset<gamefile::Entity>>(*entities) : 0;
+  return gamefile::CreateGameFile(
+      _fbb,
+      version,
+      vertex_shader,
+      fragment_shader,
+      entities__);
 }
 
 inline const gamefile::GameFile *GetGameFile(const void *buf) {

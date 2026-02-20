@@ -33,4 +33,4 @@ jobs:
       - name: Game launch test
         shell: bash
         run: |
-          ./Pudding.exe
+          ./Pudding.exe -lt

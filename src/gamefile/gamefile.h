@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <entity/entity.hpp>
 #include <gamefile_generated.h>
 
 class GameFile
@@ -13,4 +15,5 @@ public:
 private:
     std::string fragment_shader = "";
     std::string vertex_shader = "";
+    std::vector<Entity> entities;
 };

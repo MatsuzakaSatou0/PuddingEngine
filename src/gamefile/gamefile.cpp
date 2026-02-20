@@ -4,7 +4,7 @@
 #include <logger.hpp>
 #include "gamefile.h"
 #include "gamefile_generated.h"
-//0x55555580b360
+#include "config.h"
 void GameFile::SetFragmentShader(std::string shader_source)
 {
     fragment_shader = shader_source;
@@ -15,6 +15,7 @@ void GameFile::SetVertexShader(std::string shader_source)
     vertex_shader = shader_source;
     return;
 }
+//読むのが辛い処理になります。必ずfbsをよみながら作業を進めましょう。
 int GameFile::LoadFile()
 {
     Log("Creating a pudding file.");
@@ -24,35 +25,98 @@ int GameFile::LoadFile()
         Log("No game data found.");
         return 1;
     }
+
     std::streamsize size = file.tellg();
+
     if(size == -1)
     {
         return 1;
     }
+
     file.seekg(0, std::ios::beg);
 
     std::vector<char> buffer_pointer(size);
 
     file.read(buffer_pointer.data(), size);
 
+    //ゲームのデータ読み込み
     auto gamefile = gamefile::GetGameFile(buffer_pointer.data());
 
-    fragment_shader = gamefile->fragment_shader()->shader()->str();
+    //バージョンチェック
+    if(gamefile->version() != SAVE_VERSION)
+    {
+        Log("Game files are out of date. Please update your core to the appropriate build.");
+        //バージョンが違う場合に、危険なためデバッグモード以外では強制停止。
+        if(debugMode)
+        {
+            Log("The software is in debug mode so the shutdown routine was forcibly exited.");
+            Log("The save data update will be performed.");
+        }else{
+            //離脱ルーチン
+            return 1;
+        }
+    }
+    //シェダーのデータ読み込み
+    if(gamefile->fragment_shader() != nullptr){
+        fragment_shader = gamefile->fragment_shader()->shader()->str();
+    }else{
+        Log("The fragment shader in the game data was unknown.");
+    }
 
-    vertex_shader = gamefile->vertex_shader()->shader()->str();
+    if(gamefile->vertex_shader() != nullptr){
+        vertex_shader = gamefile->vertex_shader()->shader()->str();
+    }else{
+        Log("The vertex shader in the game data was unknown.");
+    }
+    //エンティティーデータがあるバージョンかどうか
+    if(gamefile->entities() != nullptr){
+        //エンティティーのデータ読み込み
+        for(auto ent : *gamefile->entities()){
+            //entityのメモリはここで消して。
+            Entity entity = Entity(glm::vec3(ent->position()->x(),ent->position()->y(),ent->position()->z()));
+            entities.push_back(entity);
+        }
+    }else{
+        //エンティティーデータがないバージョンの場合
+        Log("The entities in the game data was unknown.");
+    }
     return 0;
 }
+//読むのが辛い処理になります。必ずfbsをよみながら作業を進めましょう。
 void GameFile::SaveFile()
 {
     flatbuffers::FlatBufferBuilder builder(1024);
-
+    //ゲームファイルの設定
     auto name = builder.CreateString("GameFile");
 
+    //シェダーの保存
     auto fragmentShaderFile = gamefile::CreateTextFileDirect(builder,fragment_shader.data());
     auto vertexShaderFile = gamefile::CreateTextFileDirect(builder,vertex_shader.data());
-    auto mloc = gamefile::CreateGameFile(builder,vertexShaderFile,fragmentShaderFile);
+    
+    //エンティティーのデータ読み込み
+    auto vec = gamefile::Vec3(0,0,0);
 
-    builder.Finish(mloc);
+    auto entity = gamefile::CreateEntity(builder,&vec);
+    
+    /*
+    table GameFile{
+        vertex_shader:TextFile;
+        fragment_shader:TextFile;
+        entities:[Entity];
+    }
+    */
+    //エンティティ取得
+    std::vector<flatbuffers::Offset<gamefile::Entity>> entities = {entity};
+    
+    auto finalGameData = gamefile::CreateGameFile(
+        builder,
+        SAVE_VERSION,
+        vertexShaderFile,
+        fragmentShaderFile,
+        builder.CreateVector(entities));
+
+    //書き込み
+    builder.Finish(finalGameData);
 
     uint8_t *buf = builder.GetBufferPointer();
     int size = builder.GetSize();

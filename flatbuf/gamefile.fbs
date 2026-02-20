@@ -1,12 +1,25 @@
 namespace gamefile;
 
+struct Vec3 {
+  x:float;
+  y:float;
+  z:float;
+}
+
+table Entity
+{
+    position:Vec3;
+}
+
 table TextFile{
     shader:string;
 }
 
 table GameFile{
+    version:int;
     vertex_shader:TextFile;
     fragment_shader:TextFile;
+    entities:[Entity];
 }
 
 root_type GameFile;

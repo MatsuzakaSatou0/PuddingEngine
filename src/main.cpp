@@ -6,13 +6,17 @@ int main(int argc, char *argv[]) {
     Log("Pudding is launching...");
     Routine* routine = new Routine();
     Log("Initializing pudding...");
+    if(argc > 1){
+        if(strncmp(argv[1],"--lt",2))
+        {
+            routine->LaunchTest();
+            routine->Exit();
+            return 0;
+        }
+    }
     if(routine->Initialize() == 1)
     {
         return 0;
-    }
-    if(argv[0] == "lt")
-    {
-        routine->LaunchTest();
     }
     routine->Update();
     routine->Exit();

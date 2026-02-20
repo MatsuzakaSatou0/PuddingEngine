@@ -8,9 +8,13 @@
 
 #include <graphics/settings.hpp>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include <component/camera.hpp>
 
 #include <logger.hpp>
 
@@ -99,6 +103,10 @@ void PglPipeline::Render()
     ImGui::Checkbox("ShaderMenu",&showShaderMenu);
     ImGui::End();
 
+    ImGui::Begin("EntityMenu");
+    ImGui::Button("Create Entity");
+    ImGui::End();
+
     #endif
 
     //ImGui描画
@@ -125,9 +133,27 @@ void PglPipeline::Render()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    Camera camera = Camera();
+    glm::mat4 view = camera.GetViewMat();
+    
+    glm::mat4 projection = camera.GetProjectionMat();
+    
+    glm::mat4 model = glm::mat4(1.0f);
+
     if(!shaderError)
     {
         glUseProgram(shaderProgram); 
+        //シェダーに値転送
+        unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+        unsigned int viewLoc  = glGetUniformLocation(shaderProgram, "view");
+        unsigned int projLoc  = glGetUniformLocation(shaderProgram, "projection");
+
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc,  1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projLoc,  1, GL_FALSE, glm::value_ptr(projection));
+        
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
     
     glBindVertexArray(VAO);
