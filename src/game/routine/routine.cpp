@@ -29,9 +29,5 @@ void Routine::Update()
 void Routine::LaunchTest()
 {
     Log("Testing...");
-    pipeline = new PglPipeline();
-    pipeline->Initialize();
-    pipeline->Render();
-    pipeline->End();
     Log("Done...");
 }
