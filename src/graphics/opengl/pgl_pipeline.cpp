@@ -47,6 +47,7 @@ GLFWwindow* PglPipeline::GetWindow()
 
 void PglPipeline::End()
 {
+    Log("Destroying the pipeline...");
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     ImGui_ImplOpenGL3_Shutdown();
@@ -179,15 +180,18 @@ bool PglPipeline::GetShaderError(GLuint shader)
 }
 int PglPipeline::Initialize()
 {
+    Log("Initializing pipeline...");
     gameFile = new GameFile();
     if(gameFile->LoadFile() == 1)
     {
         return 1;
     }
+    Log("Game file loading completed");
     
     //初期化、できなければ返す
     if (!glfwInit())
     {
+        Log("glfw initialization failed");
         return 1;
     }
 
@@ -197,12 +201,16 @@ int PglPipeline::Initialize()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
+    Log("GLSL");
+    Log(glsl_version);
+    Log("VERSION");
     //ウィンドウ作成
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Learn OpenGL", NULL, NULL);
 
     //ウィンドウがなければ終了。
     if (!window) {
         glfwTerminate();
+        Log("Window creation failed");
         return 1;
     }
 
@@ -211,6 +219,7 @@ int PglPipeline::Initialize()
 
     //GLを読み込み
     if (!gladLoadGL(glfwGetProcAddress)) {
+        Log("Load GL(glad) failed");
         return 1;
     }
 
@@ -218,6 +227,7 @@ int PglPipeline::Initialize()
     glDebugMessageCallback(debugMessageCallback, 0);
 
     //シェダーの処理
+    Log("Processing Shaders");
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     const char* ptr1 = gameFile->GetVertexShaderPtr();
     glShaderSource(vertexShader, 1, &ptr1, NULL);
@@ -228,6 +238,7 @@ int PglPipeline::Initialize()
     if(!GetShaderError(vertexShader))
     {
         shaderError = true;
+        Log("The shader error flag was turned on.(vertex)");
     }
 
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -238,6 +249,7 @@ int PglPipeline::Initialize()
     if(!GetShaderError(fragmentShader))
     {
         shaderError = true;
+        Log("The shader error flag was turned on.(fragment)");
     }
     if(shaderError == false){
         shaderProgram = glCreateProgram();
@@ -250,8 +262,7 @@ int PglPipeline::Initialize()
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
-    //シェダーを削除
-
+    Log("Initializing ImGUI");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;

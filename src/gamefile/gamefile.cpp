@@ -34,14 +34,16 @@ int GameFile::LoadFile()
     }
 
     file.seekg(0, std::ios::beg);
+    Log("Seek pos to 0.");
 
     std::vector<char> buffer_pointer(size);
-
+    
     file.read(buffer_pointer.data(), size);
 
     //ゲームのデータ読み込み
+    Log("Load Data with FlatBuffer");
     auto gamefile = gamefile::GetGameFile(buffer_pointer.data());
-
+    Log("FlatBuffer Done");
     //バージョンチェック
     if(gamefile->version() != SAVE_VERSION)
     {
@@ -80,6 +82,7 @@ int GameFile::LoadFile()
         //エンティティーデータがないバージョンの場合
         Log("The entities in the game data was unknown.");
     }
+    Log("SaveData Load Done");
     return 0;
 }
 //読むのが辛い処理になります。必ずfbsをよみながら作業を進めましょう。
