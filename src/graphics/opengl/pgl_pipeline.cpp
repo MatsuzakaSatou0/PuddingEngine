@@ -35,6 +35,9 @@ void APIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum
     fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
     (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 }
+void error_callback(int error, const char* description) {
+    std::cerr << "GLFW Error [" << error << "]: " << description << std::endl;
+}
 
 PglPipeline::PglPipeline()
 {
@@ -180,6 +183,9 @@ bool PglPipeline::GetShaderError(GLuint shader)
 }
 int PglPipeline::Initialize()
 {
+    //エラー用コールバック
+    glfwSetErrorCallback(error_callback);
+    
     Log("Initializing pipeline...");
     gameFile = new GameFile();
     if(gameFile->LoadFile() == 1)
