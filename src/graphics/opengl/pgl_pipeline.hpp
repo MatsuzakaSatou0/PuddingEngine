@@ -17,6 +17,8 @@ private:
     GLuint VAO,VBO;
     bool shaderError;
 
+    std::string debugResult;
+
     //表示中のメニュー
     bool showShaderMenu;
 

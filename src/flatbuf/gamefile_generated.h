@@ -17,6 +17,9 @@ namespace gamefile {
 
 struct Vec3;
 
+struct Mesh;
+struct MeshBuilder;
+
 struct Entity;
 struct EntityBuilder;
 
@@ -55,17 +58,102 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
 };
 FLATBUFFERS_STRUCT_END(Vec3, 12);
 
+struct Mesh FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef MeshBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_VERTEX = 4,
+    VT_NORMAL = 6,
+    VT_INDICES = 8
+  };
+  const ::flatbuffers::Vector<const gamefile::Vec3 *> *vertex() const {
+    return GetPointer<const ::flatbuffers::Vector<const gamefile::Vec3 *> *>(VT_VERTEX);
+  }
+  const ::flatbuffers::Vector<const gamefile::Vec3 *> *normal() const {
+    return GetPointer<const ::flatbuffers::Vector<const gamefile::Vec3 *> *>(VT_NORMAL);
+  }
+  const ::flatbuffers::Vector<int32_t> *indices() const {
+    return GetPointer<const ::flatbuffers::Vector<int32_t> *>(VT_INDICES);
+  }
+  bool Verify(::flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VERTEX) &&
+           verifier.VerifyVector(vertex()) &&
+           VerifyOffset(verifier, VT_NORMAL) &&
+           verifier.VerifyVector(normal()) &&
+           VerifyOffset(verifier, VT_INDICES) &&
+           verifier.VerifyVector(indices()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MeshBuilder {
+  typedef Mesh Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_vertex(::flatbuffers::Offset<::flatbuffers::Vector<const gamefile::Vec3 *>> vertex) {
+    fbb_.AddOffset(Mesh::VT_VERTEX, vertex);
+  }
+  void add_normal(::flatbuffers::Offset<::flatbuffers::Vector<const gamefile::Vec3 *>> normal) {
+    fbb_.AddOffset(Mesh::VT_NORMAL, normal);
+  }
+  void add_indices(::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> indices) {
+    fbb_.AddOffset(Mesh::VT_INDICES, indices);
+  }
+  explicit MeshBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<Mesh> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<Mesh>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<Mesh> CreateMesh(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const gamefile::Vec3 *>> vertex = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<const gamefile::Vec3 *>> normal = 0,
+    ::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> indices = 0) {
+  MeshBuilder builder_(_fbb);
+  builder_.add_indices(indices);
+  builder_.add_normal(normal);
+  builder_.add_vertex(vertex);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<Mesh> CreateMeshDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<gamefile::Vec3> *vertex = nullptr,
+    const std::vector<gamefile::Vec3> *normal = nullptr,
+    const std::vector<int32_t> *indices = nullptr) {
+  auto vertex__ = vertex ? _fbb.CreateVectorOfStructs<gamefile::Vec3>(*vertex) : 0;
+  auto normal__ = normal ? _fbb.CreateVectorOfStructs<gamefile::Vec3>(*normal) : 0;
+  auto indices__ = indices ? _fbb.CreateVector<int32_t>(*indices) : 0;
+  return gamefile::CreateMesh(
+      _fbb,
+      vertex__,
+      normal__,
+      indices__);
+}
+
 struct Entity FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef EntityBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_POSITION = 4
+    VT_POSITION = 4,
+    VT_MESH = 6
   };
   const gamefile::Vec3 *position() const {
     return GetStruct<const gamefile::Vec3 *>(VT_POSITION);
   }
+  const gamefile::Mesh *mesh() const {
+    return GetPointer<const gamefile::Mesh *>(VT_MESH);
+  }
   bool Verify(::flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<gamefile::Vec3>(verifier, VT_POSITION, 4) &&
+           VerifyOffset(verifier, VT_MESH) &&
+           verifier.VerifyTable(mesh()) &&
            verifier.EndTable();
   }
 };
@@ -76,6 +164,9 @@ struct EntityBuilder {
   ::flatbuffers::uoffset_t start_;
   void add_position(const gamefile::Vec3 *position) {
     fbb_.AddStruct(Entity::VT_POSITION, position);
+  }
+  void add_mesh(::flatbuffers::Offset<gamefile::Mesh> mesh) {
+    fbb_.AddOffset(Entity::VT_MESH, mesh);
   }
   explicit EntityBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -90,8 +181,10 @@ struct EntityBuilder {
 
 inline ::flatbuffers::Offset<Entity> CreateEntity(
     ::flatbuffers::FlatBufferBuilder &_fbb,
-    const gamefile::Vec3 *position = nullptr) {
+    const gamefile::Vec3 *position = nullptr,
+    ::flatbuffers::Offset<gamefile::Mesh> mesh = 0) {
   EntityBuilder builder_(_fbb);
+  builder_.add_mesh(mesh);
   builder_.add_position(position);
   return builder_.Finish();
 }

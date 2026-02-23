@@ -1,7 +1,7 @@
-#include <string>
 #include <fstream>
 #include <iostream>
 #include <logger.hpp>
+#include <parser/gltf_parser.hpp>
 #include "gamefile.h"
 #include "gamefile_generated.h"
 #include "config.h"
@@ -76,12 +76,31 @@ int GameFile::LoadFile()
         for(auto ent : *gamefile->entities()){
             //entityのメモリはここで消して。
             Entity entity = Entity(glm::vec3(ent->position()->x(),ent->position()->y(),ent->position()->z()));
+            
+            std::vector<glm::vec3> vercities = {};
+            std::vector<glm::vec3> normals = {};
+            std::vector<int> indicies = {};
+            for(auto ent_vertex : *ent->mesh()->vertex())
+            {
+                auto vertex = glm::vec3(ent_vertex->x(),ent_vertex->y(),ent_vertex->z());
+                vercities.push_back(vertex);
+            }
+            for(auto ent_normal : *ent->mesh()->normal())
+            {
+                auto normal = glm::vec3(ent_normal->x(),ent_normal->y(),ent_normal->z());
+                normals.push_back(normal);
+            }
+            for(auto ent_index : *ent->mesh()->indices())
+            {
+                indicies.push_back(ent_index);
+            }
             entities.push_back(entity);
         }
     }else{
         //エンティティーデータがないバージョンの場合
         Log("The entities in the game data was unknown.");
     }
+
     Log("SaveData Load Done");
     return 0;
 }
@@ -91,15 +110,10 @@ void GameFile::SaveFile()
     flatbuffers::FlatBufferBuilder builder(1024);
     //ゲームファイルの設定
     auto name = builder.CreateString("GameFile");
-
+    Log("Saving shader");
     //シェダーの保存
-    auto fragmentShaderFile = gamefile::CreateTextFileDirect(builder,fragment_shader.data());
-    auto vertexShaderFile = gamefile::CreateTextFileDirect(builder,vertex_shader.data());
-    
-    //エンティティーのデータ読み込み
-    auto vec = gamefile::Vec3(0,0,0);
-
-    auto entity = gamefile::CreateEntity(builder,&vec);
+    auto fragmentShaderFile = gamefile::CreateTextFileDirect(builder,GetInstance().fragment_shader.data());
+    auto vertexShaderFile = gamefile::CreateTextFileDirect(builder,GetInstance().vertex_shader.data());
     
     /*
     table GameFile{
@@ -108,15 +122,35 @@ void GameFile::SaveFile()
         entities:[Entity];
     }
     */
+    std::vector<flatbuffers::Offset<gamefile::Entity>> entities_save = {};
+    Log("Saving entities");
     //エンティティ取得
-    std::vector<flatbuffers::Offset<gamefile::Entity>> entities = {entity};
+    for(auto ent : GetInstance().entities)
+    {
+        auto vertices_offset = builder.CreateVectorOfStructs(
+            reinterpret_cast<const gamefile::Vec3*>(ent.GetVertices().data()), 
+            ent.GetVertices().size()
+        );
+        auto normals_offset = builder.CreateVectorOfStructs(
+            reinterpret_cast<const gamefile::Vec3*>(ent.GetNormals().data()), 
+            ent.GetNormals().size()
+        );
+        auto indices_offset = builder.CreateVector(
+            ent.GetIndices().data(), 
+            ent.GetIndices().size()
+        );
+        auto g =gamefile::Vec3(ent.GetPosition().x,ent.GetPosition().y,ent.GetPosition().z);
+        auto mesh_save = gamefile::CreateMesh(builder,vertices_offset,normals_offset,indices_offset);
+        auto entity_save = gamefile::CreateEntity(builder,&g,mesh_save);
+        entities_save.push_back(entity_save);
+    }
     
     auto finalGameData = gamefile::CreateGameFile(
         builder,
         SAVE_VERSION,
         vertexShaderFile,
         fragmentShaderFile,
-        builder.CreateVector(entities));
+        builder.CreateVector(entities_save));
 
     //書き込み
     builder.Finish(finalGameData);
@@ -132,11 +166,19 @@ void GameFile::SaveFile()
 }
 char* GameFile::GetFragmentShaderPtr()
 {
-    fragment_shader += "\0";
-    return fragment_shader.data();
+    GetInstance().fragment_shader += "\0";
+    return GetInstance().fragment_shader.data();
 }
 char* GameFile::GetVertexShaderPtr()
 {
-    fragment_shader += "\0";
-    return vertex_shader.data();
+    GetInstance().vertex_shader += "\0";
+    return GetInstance().vertex_shader.data();
+}
+std::vector<Entity> GameFile::GetEntities()
+{
+    return entities;
+}
+void GameFile::AddEntity(Entity entity)
+{
+    entities.push_back(entity);
 }

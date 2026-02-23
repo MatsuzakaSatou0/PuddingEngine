@@ -6,9 +6,17 @@ struct Vec3 {
   z:float;
 }
 
+table Mesh
+{
+    vertex:[Vec3];
+    normal:[Vec3];
+    indices:[int];
+}
+
 table Entity
 {
     position:Vec3;
+    mesh:Mesh;
 }
 
 table TextFile{

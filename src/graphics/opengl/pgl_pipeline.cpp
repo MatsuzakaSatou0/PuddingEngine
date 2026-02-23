@@ -1,5 +1,7 @@
 #include <config.h>
 
+#include <parser/gltf_parser.hpp>
+
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imconfig.h"
@@ -15,6 +17,8 @@
 #include <string>
 
 #include <component/camera.hpp>
+
+#include <gamefile/gamefile.h>
 
 #include <logger.hpp>
 
@@ -98,6 +102,7 @@ void PglPipeline::Render()
     ImGui::Begin("SaveMenu",NULL,flags);
     if (ImGui::Button("Save Game")) {
         gameFile->SaveFile();
+
     }
     ImGui::End();
     
@@ -107,8 +112,58 @@ void PglPipeline::Render()
     ImGui::Checkbox("ShaderMenu",&showShaderMenu);
     ImGui::End();
 
-    ImGui::Begin("EntityMenu");
-    ImGui::Button("Create Entity");
+    //エンティティーメニュー
+    ImGui::Begin("Entities");
+    //インデックス。staticで初期化。
+    static int selected_idx = 0;
+    //最大256で割り当て
+    std::vector<const char*> items(256);
+    const char* item_current = items[selected_idx];
+    
+    int name_count = 0;
+    //メッシュ読み込み
+    for(auto entity : GameFile::GetInstance().GetEntities())
+    {
+        if(name_count > 256)
+        {
+            return;
+        }
+        items.push_back(entity.GetName().c_str());
+        name_count++;
+    }
+    //エンティティ
+    ImGui::Begin("EntityTool",NULL,flags);
+    if(ImGui::Button("New Entity"))
+    {
+        Entity entity = Entity(glm::vec3(0,0,0));
+        GameFile::GetInstance().AddEntity(entity);
+    }
+    ImGui::End();
+    //エンティティリスト
+    if (ImGui::BeginTable("EntityList", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
+    {
+        ImGui::TableSetupColumn("NAME", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+        ImGui::TableSetupColumn("EDITOR", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+        ImGui::TableHeadersRow();
+        int i = 0;
+        for (auto entity : GameFile::GetInstance().GetEntities())
+        {
+            ImGui::TableNextRow();
+            
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text(entity.GetName().data());
+            ImGui::TableSetColumnIndex(1);
+            ImGui::PushID(i);
+            if(ImGui::Button("OPEN"))
+            {
+
+            }
+            ImGui::PopID();
+            i++;
+        }
+        ImGui::EndTable();
+    }
+    ImGui::Text(debugResult.data());
     ImGui::End();
 
     #endif
@@ -187,8 +242,7 @@ int PglPipeline::Initialize()
     glfwSetErrorCallback(error_callback);
     
     Log("Initializing pipeline...");
-    gameFile = new GameFile();
-    if(gameFile->LoadFile() == 1)
+    if(GameFile::GetInstance().LoadFile() == 1)
     {
         return 1;
     }

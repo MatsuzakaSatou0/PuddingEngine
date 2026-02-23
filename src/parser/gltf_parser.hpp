@@ -1,0 +1,14 @@
+#include "tiny_gltf.h"
+#include <gamefile/gamefile.h>
+#include <glm/glm.hpp>
+
+class GltfParser
+{
+public:
+    bool LoadGLTF(std::string& log,Entity& entity);
+private:
+    tinygltf::Model model;
+    tinygltf::TinyGLTF loader;
+    std::string err;
+    std::string warn;
+};
