@@ -24,6 +24,7 @@ public:
     char* GetFragmentShaderPtr();
     char* GetVertexShaderPtr();
     std::vector<Entity> GetEntities();
+    std::vector<Entity>& GetEntitiesMut();
     void AddEntity(Entity entity);
 private:
     GameFile() {

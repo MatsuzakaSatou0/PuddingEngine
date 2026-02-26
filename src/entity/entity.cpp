@@ -1,4 +1,7 @@
 #include <entity/entity.hpp>
+#include <format>
+#include "imgui.h"
+#include <parser/gltf_parser.hpp>
 
 Entity::Entity(glm::vec3 _position)
 {
@@ -43,4 +46,34 @@ void Entity::SetName(std::string _name)
 std::string Entity::GetName()
 {
     return name;
+}
+void Entity::RenderEditor()
+{
+    if(isEditorOpen)
+    {
+        GltfParser gltfParser = GltfParser();
+        ImGui::Begin("MeshEditor");
+        if(ImGui::Button("Close"))
+        {
+            CloseEditor();
+        }
+        if(ImGui::Button("LoadMesh"))
+        {
+            gltfParser.LoadGLTF(gltfLog,*this);
+        }
+        ImGui::Text("mesh info");
+        int mesh_size = GetVertices().size() + GetNormals().size() + GetIndices().size();
+        std::string mesh_size_str = std::format("SIZE:{}",mesh_size);
+        ImGui::Text(mesh_size_str.data());
+        ImGui::Text(gltfLog.data());
+        ImGui::End();
+    }
+}
+void Entity::OpenEditor()
+{
+    isEditorOpen = true;
+}
+void Entity::CloseEditor()
+{
+    isEditorOpen = false;
 }

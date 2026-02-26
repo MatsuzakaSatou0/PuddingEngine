@@ -11,7 +11,7 @@ source env/bin/activate
 uv pip install conan
 
 #glfwの依存関係とninjaをインストール
-sudo apt install ninja-build
+sudo apt install ninja-build cmake
 sudo apt install -y build-essential libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxkbcommon-dev pkg-config
 sudo apt update && sudo apt install -y \
   libx11-dev libx11-xcb-dev libfontenc-dev libice-dev libsm-dev \

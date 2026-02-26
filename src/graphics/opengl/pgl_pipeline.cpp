@@ -1,7 +1,5 @@
 #include <config.h>
 
-#include <parser/gltf_parser.hpp>
-
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imconfig.h"
@@ -88,12 +86,20 @@ void PglPipeline::Render()
         }
         ImGui::End();
     }
+
+    //エンティティのエディター
+    
+    for (auto& entity : GameFile::GetInstance().GetEntitiesMut())
+    {
+        entity.RenderEditor();
+    }
+
     //シェーダーの設定画面
     if(showShaderMenu){
         static ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse;
         ImGui::Begin("ShaderSetting",NULL,flags);
-        ImGui::InputTextMultiline("VertexShader", gameFile->GetVertexShaderPtr(), 512,ImVec2(300,100));
-        ImGui::InputTextMultiline("FragmentShader", gameFile->GetFragmentShaderPtr(), 512,ImVec2(300,100));
+        ImGui::InputTextMultiline("VertexShader", gameFile->GetVertexShaderPtr(), 4096,ImVec2(300,100));
+        ImGui::InputTextMultiline("FragmentShader", gameFile->GetFragmentShaderPtr(), 4096,ImVec2(300,100));
         ImGui::End();
     }
 
@@ -102,7 +108,6 @@ void PglPipeline::Render()
     ImGui::Begin("SaveMenu",NULL,flags);
     if (ImGui::Button("Save Game")) {
         gameFile->SaveFile();
-
     }
     ImGui::End();
     
@@ -143,10 +148,10 @@ void PglPipeline::Render()
     if (ImGui::BeginTable("EntityList", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY))
     {
         ImGui::TableSetupColumn("NAME", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-        ImGui::TableSetupColumn("EDITOR", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+        ImGui::TableSetupColumn("Mesh", ImGuiTableColumnFlags_WidthFixed, 40.0f);
         ImGui::TableHeadersRow();
         int i = 0;
-        for (auto entity : GameFile::GetInstance().GetEntities())
+        for (auto& entity : GameFile::GetInstance().GetEntitiesMut())
         {
             ImGui::TableNextRow();
             
@@ -154,9 +159,9 @@ void PglPipeline::Render()
             ImGui::Text(entity.GetName().data());
             ImGui::TableSetColumnIndex(1);
             ImGui::PushID(i);
-            if(ImGui::Button("OPEN"))
+            if(ImGui::Button("Edit"))
             {
-
+                entity.OpenEditor();
             }
             ImGui::PopID();
             i++;
@@ -175,23 +180,38 @@ void PglPipeline::Render()
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     //背景を初期化
     glClear(GL_COLOR_BUFFER_BIT);
-        
-    //頂点データ
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
-    };
+    
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
+    
+    //頂点取得
+    for(auto entity : GameFile::GetInstance().GetEntities())
+    {
+        for(glm::vec3 pos : entity.GetVertices()) {
+            vertices.push_back(pos.x);
+            vertices.push_back(pos.y);
+            vertices.push_back(pos.z);
+        }
+        for(unsigned int idx : entity.GetIndices()) {
+            indices.push_back(idx);
+        }
+    }
 
     //頂点配列データを割り当て
     glBindVertexArray(VAO);
     //頂点バッファデータを割り当て
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float),vertices.data(), GL_STATIC_DRAW);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    //インデックス
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+    
     Camera camera = Camera();
     glm::mat4 view = camera.GetViewMat();
     
@@ -210,13 +230,11 @@ void PglPipeline::Render()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniformMatrix4fv(viewLoc,  1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc,  1, GL_FALSE, glm::value_ptr(projection));
-        
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     //フレームバッファをスワップ
@@ -266,6 +284,7 @@ int PglPipeline::Initialize()
     Log("VERSION");
     //ウィンドウ作成
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Learn OpenGL", NULL, NULL);
+    glfwSwapInterval(1);
 
     //ウィンドウがなければ終了。
     if (!window) {

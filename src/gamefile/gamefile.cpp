@@ -7,15 +7,16 @@
 #include "config.h"
 void GameFile::SetFragmentShader(std::string shader_source)
 {
+    fragment_shader.reserve(shader_source.size());
     fragment_shader = shader_source;
     return;
 }
 void GameFile::SetVertexShader(std::string shader_source)
 {
+    vertex_shader.reserve(shader_source.size());
     vertex_shader = shader_source;
     return;
 }
-//読むのが辛い処理になります。必ずfbsをよみながら作業を進めましょう。
 int GameFile::LoadFile()
 {
     Log("Creating a pudding file.");
@@ -94,6 +95,9 @@ int GameFile::LoadFile()
             {
                 indicies.push_back(ent_index);
             }
+            entity.SetVertices(vercities);
+            entity.SetIndices(indicies);
+            entity.SetNormals(normals);
             entities.push_back(entity);
         }
     }else{
@@ -104,7 +108,6 @@ int GameFile::LoadFile()
     Log("SaveData Load Done");
     return 0;
 }
-//読むのが辛い処理になります。必ずfbsをよみながら作業を進めましょう。
 void GameFile::SaveFile()
 {
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -166,13 +169,19 @@ void GameFile::SaveFile()
 }
 char* GameFile::GetFragmentShaderPtr()
 {
-    GetInstance().fragment_shader += "\0";
+    //割り当て自動化
+    GetInstance().fragment_shader.reserve(GetInstance().fragment_shader.size()+4);
     return GetInstance().fragment_shader.data();
 }
 char* GameFile::GetVertexShaderPtr()
 {
-    GetInstance().vertex_shader += "\0";
+    //割り当て自動化
+    GetInstance().vertex_shader.reserve(GetInstance().vertex_shader.size()+4);
     return GetInstance().vertex_shader.data();
+}
+std::vector<Entity>& GameFile::GetEntitiesMut()
+{
+    return entities;
 }
 std::vector<Entity> GameFile::GetEntities()
 {

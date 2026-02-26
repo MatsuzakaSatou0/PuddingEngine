@@ -14,14 +14,16 @@ bool GltfParser::LoadGLTF(std::string& log,Entity& entity){
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
     if(!ret)
     {
-        log += "file not found";
+        log += "file not found\n";
+        log += err;
         return false;
     }
     const tinygltf::Scene& scene = model.scenes[model.defaultScene];
     log += "---SCENE---\n";
     log += scene.name;
     std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> normal;
+    std::vector<glm::vec3> normals;
+    std::vector<int> indices;
     for(tinygltf::Node node : model.nodes)
     {
         if (node.mesh < 0) continue;
@@ -75,36 +77,40 @@ bool GltfParser::LoadGLTF(std::string& log,Entity& entity){
                         log += std::to_string(z);
                         log += " ";
                         log += "\n";
-                        normal.push_back(glm::vec3(x,y,z));
+                        normals.push_back(glm::vec3(x,y,z));
                     }
                 }
-                if (primitive.indices > -1) {
-                    const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
-                    const tinygltf::Buffer &buffer = model.buffers[model.bufferViews[indexAccessor.bufferView].buffer];
-                    const unsigned char* basePtr = &buffer.data[model.bufferViews[indexAccessor.bufferView].byteOffset + indexAccessor.byteOffset];
+            }
+            if (primitive.indices > -1) {
+                const tinygltf::Accessor &indexAccessor = model.accessors[primitive.indices];
+                const tinygltf::Buffer &buffer = model.buffers[model.bufferViews[indexAccessor.bufferView].buffer];
+                const unsigned char* basePtr = &buffer.data[model.bufferViews[indexAccessor.bufferView].byteOffset + indexAccessor.byteOffset];
 
-                    for (size_t v = 0; v < indexAccessor.count; ++v) {
-                        uint32_t idx = 0;
+                for (size_t v = 0; v < indexAccessor.count; ++v) {
+                    uint32_t idx = 0;
 
-                        if (indexAccessor.componentType == 5123) { //UNSIGNED_SHORT
-                            const uint16_t* buf = reinterpret_cast<const uint16_t*>(basePtr);
-                            idx = buf[v];
-                        } 
-                        else if (indexAccessor.componentType == 5125) { //UNSIGNED_INT
-                            const uint32_t* buf = reinterpret_cast<const uint32_t*>(basePtr);
-                            idx = buf[v];
-                        }
-                        else if (indexAccessor.componentType == 5121) { //UNSIGNED_BYTE
-                            idx = basePtr[v];
-                        }
-                        log += std::to_string(idx);
-                        log += "\n";
+                    if (indexAccessor.componentType == 5123) { //UNSIGNED_SHORT
+                        const uint16_t* buf = reinterpret_cast<const uint16_t*>(basePtr);
+                        idx = buf[v];
+                    } 
+                    else if (indexAccessor.componentType == 5125) { //UNSIGNED_INT
+                        const uint32_t* buf = reinterpret_cast<const uint32_t*>(basePtr);
+                        idx = buf[v];
                     }
-                    log += " ";
+                    else if (indexAccessor.componentType == 5121) { //UNSIGNED_BYTE
+                        idx = basePtr[v];
+                    }
+                    log += "ID";
+                    log += std::to_string(idx);
+                    log += "\n";
+                    indices.push_back(idx);
                 }
+                log += " ";
             }
         }
     }
     entity.SetVertices(vertices);
+    entity.SetIndices(indices);
+    entity.SetNormals(normals);
     return true;
 }

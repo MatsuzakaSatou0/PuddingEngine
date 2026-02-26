@@ -1,7 +1,7 @@
 #include "tiny_gltf.h"
 #include <gamefile/gamefile.h>
 #include <glm/glm.hpp>
-
+#include <entity/entity.hpp>
 class GltfParser
 {
 public:

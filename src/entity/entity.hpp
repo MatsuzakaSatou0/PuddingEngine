@@ -16,7 +16,12 @@ public:
     glm::vec3 GetPosition();
     void SetName(std::string name);
     std::string GetName();
+    void RenderEditor();
+    void OpenEditor();
+    void CloseEditor();
 private:
+    std::string gltfLog;
+    bool isEditorOpen = false;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> vertices;
     std::vector<int> indices;
