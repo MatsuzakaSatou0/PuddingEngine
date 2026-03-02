@@ -1,6 +1,7 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <gamefile/gamefile.h>
+#include <component/camera.hpp>
 
 class PglPipeline
 {
@@ -26,4 +27,6 @@ private:
     unsigned int fragmentShader;
     unsigned int vertexShader;
     bool show_demo_window = true;
+    
+    Camera camera = Camera();
 };

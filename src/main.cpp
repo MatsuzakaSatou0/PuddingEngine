@@ -1,3 +1,9 @@
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define TINYGLTF_NOEXCEPTION
+#define JSON_NOEXCEPTION
+
 #include <iostream>
 #include <gamefile/gamefile.h>
 #include <game/routine/routine.hpp>

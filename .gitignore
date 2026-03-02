@@ -7,3 +7,5 @@ env
 win.zip
 imgui.ini
 flatc
+win_build_debug_out
+build_win_release

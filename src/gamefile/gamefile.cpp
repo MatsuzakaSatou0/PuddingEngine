@@ -125,6 +125,7 @@ void GameFile::SaveFile()
         entities:[Entity];
     }
     */
+    
     std::vector<flatbuffers::Offset<gamefile::Entity>> entities_save = {};
     Log("Saving entities");
     //エンティティ取得

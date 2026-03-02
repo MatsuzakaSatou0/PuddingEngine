@@ -1,17 +1,21 @@
-
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define TINYGLTF_NOEXCEPTION
-#define JSON_NOEXCEPTION
-
 #include <string>
 #include "gltf_parser.hpp"
+#include "tiny_gltf.h"
 
 bool GltfParser::LoadGLTF(std::string& log,Entity& entity){
     flatbuffers::FlatBufferBuilder builder(1024);
     std::string filename = "input.gltf";
+    
     bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
+
+    const tinygltf::Material &material = model.materials[0];
+
+    //テクスチャ読み込み
+    const tinygltf::PbrMetallicRoughness &pbr = material.pbrMetallicRoughness;
+    int textureIndex = pbr.baseColorTexture.index;
+    int imageIndex = model.textures[textureIndex].source;
+    const tinygltf::Image &image = model.images[imageIndex];
+    
     if(!ret)
     {
         log += "file not found\n";
@@ -112,5 +116,6 @@ bool GltfParser::LoadGLTF(std::string& log,Entity& entity){
     entity.SetVertices(vertices);
     entity.SetIndices(indices);
     entity.SetNormals(normals);
+    entity.SetImage(image);
     return true;
 }

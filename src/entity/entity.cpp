@@ -77,3 +77,7 @@ void Entity::CloseEditor()
 {
     isEditorOpen = false;
 }
+void Entity::SetImage(tinygltf::Image _image)
+{
+    image = _image;
+}

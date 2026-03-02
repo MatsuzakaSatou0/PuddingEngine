@@ -14,8 +14,6 @@
 #include <fstream>
 #include <string>
 
-#include <component/camera.hpp>
-
 #include <gamefile/gamefile.h>
 
 #include <logger.hpp>
@@ -171,6 +169,18 @@ void PglPipeline::Render()
     ImGui::Text(debugResult.data());
     ImGui::End();
 
+    ImGui::Begin("Camera");
+    ImGui::SliderFloat("fov", &camera.GetFov(), 0.0f, 180.0f);
+    glm::vec3& position = camera.GetCameraPosition();
+    ImGui::SliderFloat("pX", &position.x, -3.0f,3.0f);
+    ImGui::SliderFloat("pY", &position.y, -3.0f, 3.0f);
+    ImGui::SliderFloat("pZ", &position.z, -3.0f, 3.0f);
+    glm::vec3& rotation = camera.GetCameraRotation();
+    ImGui::SliderFloat("rX", &rotation.x, -3.0f,3.0f);
+    ImGui::SliderFloat("rY", &rotation.y, -3.0f, 3.0f);
+    ImGui::SliderFloat("rZ", &rotation.z, -3.0f, 3.0f);
+    ImGui::End();
+
     #endif
 
     //ImGui描画
@@ -211,8 +221,7 @@ void PglPipeline::Render()
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-    
-    Camera camera = Camera();
+
     glm::mat4 view = camera.GetViewMat();
     
     glm::mat4 projection = camera.GetProjectionMat();

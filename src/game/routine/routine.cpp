@@ -14,6 +14,7 @@ int Routine::Initialize()
 void Routine::Exit(){
     glfwTerminate();
 }
+
 void Routine::Update()
 {
     //ウィンドウが終了すべきか

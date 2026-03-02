@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
+#include "tiny_gltf.h"
+
 class Entity
 {
 public:
@@ -19,7 +21,10 @@ public:
     void RenderEditor();
     void OpenEditor();
     void CloseEditor();
+    void SetImage(tinygltf::Image image);
+    void GetImage();
 private:
+    tinygltf::Image image;
     std::string gltfLog;
     bool isEditorOpen = false;
     std::vector<glm::vec3> normals;
